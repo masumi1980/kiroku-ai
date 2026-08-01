@@ -86,3 +86,14 @@ Every feature starts from an Issue and is implemented through pull requests.
 ## License
 
 MIT License
+
+Current Version
+
+v0.1.0
+
+Features
+
+✅ Recording UI
+✅ Timer
+✅ Room Database
+✅ History Screen
