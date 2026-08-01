@@ -26,7 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jp.co.kirokuai.app.viewmodel.RecordingUiState
 import jp.co.kirokuai.app.viewmodel.RecordingViewModel
-import java.util.Locale
+import jp.co.kirokuai.app.util.formatDuration
 
 @Composable
 fun RecordingScreen(
@@ -126,9 +126,5 @@ private fun RecordingContent(
 }
 
 internal fun formatElapsedTime(elapsedSeconds: Long): String {
-    val minutes = elapsedSeconds / SECONDS_PER_MINUTE
-    val seconds = elapsedSeconds % SECONDS_PER_MINUTE
-    return String.format(Locale.US, "%02d:%02d", minutes, seconds)
+    return formatDuration(elapsedSeconds)
 }
-
-private const val SECONDS_PER_MINUTE = 60L

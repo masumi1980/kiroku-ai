@@ -3,6 +3,9 @@ package jp.co.kirokuai.app.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jp.co.kirokuai.app.audio.AudioRecorder
+import jp.co.kirokuai.app.domain.MeetingRepository
+import jp.co.kirokuai.app.model.Meeting
+import jp.co.kirokuai.app.model.MeetingStatus
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,12 +24,16 @@ data class RecordingUiState(
 
 class RecordingViewModel(
     private val audioRecorder: AudioRecorder,
+    private val meetingRepository: MeetingRepository,
     private val outputPathProvider: () -> String,
+    private val currentTimeMillis: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
     private val mutableUiState = MutableStateFlow(RecordingUiState())
     val uiState: StateFlow<RecordingUiState> = mutableUiState.asStateFlow()
 
     private var timerJob: Job? = null
+    private var recordingOutputPath: String? = null
+    private var recordingStartedAt: Long? = null
 
     fun updateMeetingTitle(title: String) {
         mutableUiState.update { it.copy(meetingTitle = title) }
@@ -36,7 +43,10 @@ class RecordingViewModel(
         if (mutableUiState.value.isRecording) return
 
         try {
-            audioRecorder.start(outputPathProvider())
+            val outputPath = outputPathProvider()
+            audioRecorder.start(outputPath)
+            recordingOutputPath = outputPath
+            recordingStartedAt = currentTimeMillis()
             mutableUiState.update {
                 it.copy(
                     elapsedSeconds = 0,
@@ -60,12 +70,40 @@ class RecordingViewModel(
         try {
             audioRecorder.stop()
             mutableUiState.update { it.copy(isRecording = false, errorMessage = null) }
+            saveMeeting()
         } catch (_: RuntimeException) {
             mutableUiState.update {
                 it.copy(
                     isRecording = false,
                     errorMessage = "録音を停止できませんでした",
                 )
+            }
+        }
+    }
+
+    private fun saveMeeting() {
+        val outputPath = recordingOutputPath ?: return
+        val startedAt = recordingStartedAt ?: return
+        val state = mutableUiState.value
+        recordingOutputPath = null
+        recordingStartedAt = null
+
+        viewModelScope.launch {
+            try {
+                meetingRepository.save(
+                    Meeting(
+                        id = 0,
+                        title = state.meetingTitle.trim().ifBlank { DEFAULT_MEETING_TITLE },
+                        createdAt = startedAt,
+                        duration = state.elapsedSeconds,
+                        audioPath = outputPath,
+                        status = MeetingStatus.COMPLETED,
+                    ),
+                )
+            } catch (_: Exception) {
+                mutableUiState.update {
+                    it.copy(errorMessage = "会議を保存できませんでした")
+                }
             }
         }
     }
@@ -84,12 +122,12 @@ class RecordingViewModel(
 
     override fun onCleared() {
         if (mutableUiState.value.isRecording) {
-            stopRecording()
+            runCatching { audioRecorder.stop() }
         }
-        super.onCleared()
     }
 
     private companion object {
         const val TIMER_INTERVAL_MILLIS = 1_000L
+        const val DEFAULT_MEETING_TITLE = "無題の会議"
     }
 }

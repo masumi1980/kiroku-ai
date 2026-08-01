@@ -7,11 +7,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import jp.co.kirokuai.app.KirokuApplication
+import jp.co.kirokuai.app.data.MediaRecorderAudioRecorder
 import jp.co.kirokuai.app.ui.history.HistoryScreen
 import jp.co.kirokuai.app.ui.home.HomeScreen
 import jp.co.kirokuai.app.ui.recording.RecordingScreen
 import jp.co.kirokuai.app.ui.settings.SettingsScreen
-import jp.co.kirokuai.app.data.MediaRecorderAudioRecorder
+import jp.co.kirokuai.app.viewmodel.HistoryViewModel
 import jp.co.kirokuai.app.viewmodel.RecordingViewModel
 import java.io.File
 
@@ -23,6 +25,8 @@ private const val RECORDING_ROUTE = "recording"
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val application = LocalContext.current.applicationContext as KirokuApplication
+    val meetingRepository = application.appContainer.meetingRepository
 
     NavHost(
         navController = navController,
@@ -36,7 +40,10 @@ fun AppNavigation() {
             )
         }
         composable(HISTORY_ROUTE) {
-            HistoryScreen()
+            val historyViewModel = viewModel {
+                HistoryViewModel(meetingRepository = meetingRepository)
+            }
+            HistoryScreen(viewModel = historyViewModel)
         }
         composable(SETTINGS_ROUTE) {
             SettingsScreen()
@@ -47,6 +54,7 @@ fun AppNavigation() {
             val recordingViewModel = viewModel {
                 RecordingViewModel(
                     audioRecorder = audioRecorder,
+                    meetingRepository = meetingRepository,
                     outputPathProvider = {
                         val recordingDirectory = File(context.filesDir, "recordings")
                         recordingDirectory.mkdirs()
