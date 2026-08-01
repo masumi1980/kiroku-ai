@@ -14,6 +14,8 @@ sealed class SpeechRecognitionException(
 
     class InvalidAudio(message: String) : SpeechRecognitionException(message)
 
+    class EmptyTranscript : SpeechRecognitionException("Transcript must not be empty")
+
     class ModelMissing(path: String) : SpeechRecognitionException(
         message = "Bundled Whisper model is missing: $path",
     )

@@ -2,10 +2,12 @@ package jp.co.kirokuai.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import jp.co.kirokuai.app.ai.speech.SpeechRepository
 import jp.co.kirokuai.app.audio.AudioRecorder
 import jp.co.kirokuai.app.domain.MeetingRepository
 import jp.co.kirokuai.app.model.Meeting
 import jp.co.kirokuai.app.model.MeetingStatus
+import java.io.File
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +27,7 @@ data class RecordingUiState(
 class RecordingViewModel(
     private val audioRecorder: AudioRecorder,
     private val meetingRepository: MeetingRepository,
+    private val speechRepository: SpeechRepository,
     private val outputPathProvider: () -> String,
     private val currentTimeMillis: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
@@ -90,19 +93,20 @@ class RecordingViewModel(
 
         viewModelScope.launch {
             try {
-                meetingRepository.save(
+                val meetingId = meetingRepository.save(
                     Meeting(
                         id = 0,
                         title = state.meetingTitle.trim().ifBlank { DEFAULT_MEETING_TITLE },
                         createdAt = startedAt,
                         duration = state.elapsedSeconds,
                         audioPath = outputPath,
-                        status = MeetingStatus.COMPLETED,
+                        status = MeetingStatus.TRANSCRIBING,
                     ),
                 )
+                speechRepository.transcribeAndPersist(meetingId, File(outputPath))
             } catch (_: Exception) {
                 mutableUiState.update {
-                    it.copy(errorMessage = "会議を保存できませんでした")
+                    it.copy(errorMessage = "文字起こしを保存できませんでした")
                 }
             }
         }

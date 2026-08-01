@@ -8,7 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import jp.co.kirokuai.app.KirokuApplication
-import jp.co.kirokuai.app.data.MediaRecorderAudioRecorder
+import jp.co.kirokuai.app.data.PcmWavAudioRecorder
 import jp.co.kirokuai.app.ui.history.HistoryScreen
 import jp.co.kirokuai.app.ui.home.HomeScreen
 import jp.co.kirokuai.app.ui.recording.RecordingScreen
@@ -27,6 +27,7 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val application = LocalContext.current.applicationContext as KirokuApplication
     val meetingRepository = application.appContainer.meetingRepository
+    val speechRepository = application.appContainer.speechRepository
 
     NavHost(
         navController = navController,
@@ -50,15 +51,16 @@ fun AppNavigation() {
         }
         composable(RECORDING_ROUTE) {
             val context = LocalContext.current.applicationContext
-            val audioRecorder = remember(context) { MediaRecorderAudioRecorder(context) }
+            val audioRecorder = remember(context) { PcmWavAudioRecorder(context) }
             val recordingViewModel = viewModel {
                 RecordingViewModel(
                     audioRecorder = audioRecorder,
                     meetingRepository = meetingRepository,
+                    speechRepository = speechRepository,
                     outputPathProvider = {
                         val recordingDirectory = File(context.filesDir, "recordings")
                         recordingDirectory.mkdirs()
-                        File(recordingDirectory, "${System.currentTimeMillis()}.m4a").absolutePath
+                        File(recordingDirectory, "${System.currentTimeMillis()}.wav").absolutePath
                     },
                 )
             }

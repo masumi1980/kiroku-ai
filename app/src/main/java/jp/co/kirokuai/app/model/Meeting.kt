@@ -7,4 +7,7 @@ data class Meeting(
     val duration: Long,
     val audioPath: String?,
     val status: MeetingStatus,
+    val updatedAt: Long = createdAt,
+    val transcript: String = "",
+    val summary: String? = null,
 )

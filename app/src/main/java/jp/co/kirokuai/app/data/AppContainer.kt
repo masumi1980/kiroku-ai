@@ -14,6 +14,6 @@ class AppContainer(context: Context) {
     private val llmEngine = LlamaCppEngine(context)
 
     val meetingRepository: MeetingRepository = RoomMeetingRepository(database.meetingDao())
-    val speechRepository = SpeechRepository(speechRecognizer)
+    val speechRepository = SpeechRepository(speechRecognizer, meetingRepository)
     val llmRepository = LlmRepository(llmEngine)
 }
