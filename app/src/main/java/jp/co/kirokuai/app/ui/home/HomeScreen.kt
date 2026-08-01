@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun HomeScreen(
+    onNewMeetingClick: () -> Unit,
     onHistoryClick: () -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -42,7 +43,7 @@ fun HomeScreen(
         )
 
         Spacer(modifier = Modifier.height(48.dp))
-        Button(onClick = {}) {
+        Button(onClick = onNewMeetingClick) {
             Text("🎤 新しい会議")
         }
 
