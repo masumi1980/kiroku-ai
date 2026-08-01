@@ -1,5 +1,6 @@
 package jp.co.kirokuai.app
 
+import androidx.navigation.NavHostController
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,6 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jp.co.kirokuai.app.ui.theme.KirokuAITheme
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
 
@@ -27,18 +31,51 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             KirokuAITheme {
-                Scaffold { innerPadding ->
-                    HomeScreen(
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val navController = rememberNavController()
+
+                NavHost(
+                    navController = navController,
+                    startDestination = "home"
+                ) {
+
+                    composable("home") {
+                        HomeScreen(navController)
+                    }
+
+                    composable("history") {
+                        HistoryScreen()
+                    }
+
+                    composable("settings") {
+                        SettingsScreen()
+                    }
                 }
             }
         }
     }
 }
+@Composable
+fun HistoryScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("会議履歴")
+    }
+}
 
 @Composable
+fun SettingsScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("設定")
+    }
+}
+@Composable
 fun HomeScreen(
+    navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -74,16 +111,20 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = {}
-        ) {
+            onClick = {
+                navController.navigate("history")
+            }
+        ){
             Text("📁 会議履歴")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = {}
-        ) {
+            onClick = {
+                navController.navigate("settings")
+            }
+        ){
             Text("⚙️ 設定")
         }
 
@@ -97,7 +138,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
@@ -105,3 +146,4 @@ fun HomeScreenPreview() {
         HomeScreen()
     }
 }
+ */
