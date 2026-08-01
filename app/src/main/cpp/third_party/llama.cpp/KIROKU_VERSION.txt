@@ -1,0 +1,3 @@
+Upstream: https://github.com/ggml-org/llama.cpp
+Tag: b9637
+Commit: aedb2a5e9ca3d4064148bbb919e0ddc0c1b70ab3
