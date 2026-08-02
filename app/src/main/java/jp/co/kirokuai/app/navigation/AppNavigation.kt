@@ -15,6 +15,7 @@ import jp.co.kirokuai.app.ui.meeting.MeetingDetailScreen
 import jp.co.kirokuai.app.ui.recording.RecordingScreen
 import jp.co.kirokuai.app.ui.settings.SettingsScreen
 import jp.co.kirokuai.app.viewmodel.HistoryViewModel
+import jp.co.kirokuai.app.viewmodel.MarkdownExportViewModel
 import jp.co.kirokuai.app.viewmodel.MeetingViewModel
 import jp.co.kirokuai.app.viewmodel.RecordingViewModel
 import java.io.File
@@ -82,7 +83,16 @@ fun AppNavigation() {
                     summaryRepository = application.appContainer.meetingSummaryRepository,
                 )
             }
-            MeetingDetailScreen(viewModel = meetingViewModel)
+            val markdownExportViewModel = viewModel {
+                MarkdownExportViewModel(
+                    meetingId = meetingId,
+                    exportUseCase = application.appContainer.markdownExportUseCase,
+                )
+            }
+            MeetingDetailScreen(
+                viewModel = meetingViewModel,
+                markdownExportViewModel = markdownExportViewModel,
+            )
         }
     }
 }
