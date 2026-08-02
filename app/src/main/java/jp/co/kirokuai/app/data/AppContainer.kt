@@ -13,7 +13,10 @@ import jp.co.kirokuai.app.domain.MeetingRepository
 import jp.co.kirokuai.app.domain.MarkdownExportUseCase
 import jp.co.kirokuai.app.domain.MeetingSummarizer
 import jp.co.kirokuai.app.domain.MeetingSummaryRepository
+import jp.co.kirokuai.app.domain.PdfExportUseCase
+import jp.co.kirokuai.app.export.PdfGenerator
 import jp.co.kirokuai.app.export.SafMarkdownExporter
+import jp.co.kirokuai.app.export.SafPdfExporter
 
 class AppContainer(context: Context) {
     private val database = KirokuDatabase.create(context)
@@ -35,6 +38,15 @@ class AppContainer(context: Context) {
     val markdownExportUseCase = MarkdownExportUseCase(
         summaryRepository = meetingSummaryRepository,
         exporter = SafMarkdownExporter(
+            openOutputStream = { destination ->
+                context.contentResolver.openOutputStream(destination.toUri(), "wt")
+            },
+        ),
+    )
+    val pdfExportUseCase = PdfExportUseCase(
+        summaryRepository = meetingSummaryRepository,
+        exporter = SafPdfExporter(
+            generator = PdfGenerator(),
             openOutputStream = { destination ->
                 context.contentResolver.openOutputStream(destination.toUri(), "wt")
             },

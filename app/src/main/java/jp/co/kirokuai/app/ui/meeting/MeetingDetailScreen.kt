@@ -28,25 +28,38 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jp.co.kirokuai.app.model.MeetingSummary
 import jp.co.kirokuai.app.viewmodel.MarkdownExportViewModel
 import jp.co.kirokuai.app.viewmodel.MeetingViewModel
+import jp.co.kirokuai.app.viewmodel.PdfExportViewModel
 
 @Composable
 fun MeetingDetailScreen(
     viewModel: MeetingViewModel,
     markdownExportViewModel: MarkdownExportViewModel,
+    pdfExportViewModel: PdfExportViewModel,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val exportState by markdownExportViewModel.uiState.collectAsStateWithLifecycle()
+    val pdfExportState by pdfExportViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val createDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(MARKDOWN_MIME_TYPE),
         onResult = { uri -> markdownExportViewModel.export(uri?.toString()) },
+    )
+    val createPdfDocument = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument(PDF_MIME_TYPE),
+        onResult = { uri -> pdfExportViewModel.export(uri?.toString()) },
     )
 
     LaunchedEffect(exportState.message) {
         exportState.message?.let { message ->
             snackbarHostState.showSnackbar(message)
             markdownExportViewModel.messageShown()
+        }
+    }
+    LaunchedEffect(pdfExportState.message) {
+        pdfExportState.message?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            pdfExportViewModel.messageShown()
         }
     }
 
@@ -68,6 +81,19 @@ fun MeetingDetailScreen(
                         CircularProgressIndicator()
                     } else {
                         Text(if (state.summary == null) "要約を生成" else "要約を再生成")
+                    }
+                }
+            }
+            item {
+                Button(
+                    onClick = { createPdfDocument.launch(pdfExportViewModel.defaultFileName()) },
+                    enabled = state.summary != null && !pdfExportState.isExporting,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    if (pdfExportState.isExporting) {
+                        CircularProgressIndicator()
+                    } else {
+                        Text("PDFをエクスポート")
                     }
                 }
             }
@@ -116,3 +142,4 @@ private fun SummarySection(title: String, entries: List<String>) {
 }
 
 private const val MARKDOWN_MIME_TYPE = "text/markdown"
+private const val PDF_MIME_TYPE = "application/pdf"

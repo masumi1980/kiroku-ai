@@ -17,6 +17,7 @@ import jp.co.kirokuai.app.ui.settings.SettingsScreen
 import jp.co.kirokuai.app.viewmodel.HistoryViewModel
 import jp.co.kirokuai.app.viewmodel.MarkdownExportViewModel
 import jp.co.kirokuai.app.viewmodel.MeetingViewModel
+import jp.co.kirokuai.app.viewmodel.PdfExportViewModel
 import jp.co.kirokuai.app.viewmodel.RecordingViewModel
 import java.io.File
 
@@ -89,9 +90,16 @@ fun AppNavigation() {
                     exportUseCase = application.appContainer.markdownExportUseCase,
                 )
             }
+            val pdfExportViewModel = viewModel {
+                PdfExportViewModel(
+                    meetingId = meetingId,
+                    exportUseCase = application.appContainer.pdfExportUseCase,
+                )
+            }
             MeetingDetailScreen(
                 viewModel = meetingViewModel,
                 markdownExportViewModel = markdownExportViewModel,
+                pdfExportViewModel = pdfExportViewModel,
             )
         }
     }
