@@ -94,7 +94,7 @@ class TranscriptPersistenceInstrumentedTest {
 
     private fun openDatabase(name: String): KirokuDatabase =
         Room.databaseBuilder(context, KirokuDatabase::class.java, name)
-            .addMigrations(KirokuDatabase.MIGRATION_1_2)
+            .addMigrations(KirokuDatabase.MIGRATION_1_2, KirokuDatabase.MIGRATION_2_3)
             .build()
 
     private fun createVersionOneDatabase() {

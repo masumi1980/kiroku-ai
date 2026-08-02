@@ -30,6 +30,7 @@ import java.util.Locale
 @Composable
 fun HistoryScreen(
     viewModel: HistoryViewModel,
+    onMeetingClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val meetings by viewModel.meetings.collectAsStateWithLifecycle()
@@ -39,6 +40,7 @@ fun HistoryScreen(
     } else {
         MeetingList(
             meetings = meetings,
+            onMeetingClick = onMeetingClick,
             modifier = modifier,
         )
     }
@@ -57,6 +59,7 @@ private fun EmptyHistory(modifier: Modifier = Modifier) {
 @Composable
 private fun MeetingList(
     meetings: List<Meeting>,
+    onMeetingClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -74,7 +77,7 @@ private fun MeetingList(
             items = meetings,
             key = Meeting::id,
         ) { meeting ->
-            MeetingCard(meeting = meeting)
+            MeetingCard(meeting = meeting, onClick = { onMeetingClick(meeting.id) })
         }
     }
 }
@@ -82,9 +85,10 @@ private fun MeetingList(
 @Composable
 private fun MeetingCard(
     meeting: Meeting,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
