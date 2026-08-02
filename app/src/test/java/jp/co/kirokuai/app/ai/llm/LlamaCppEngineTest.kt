@@ -26,6 +26,7 @@ class LlamaCppEngineTest {
         assertEquals("generated text", response)
         assertEquals(modelFile.absolutePath, nativeApi.receivedModelPath)
         assertEquals("Once upon a time,", nativeApi.receivedPrompt)
+        assertEquals(TEST_NATIVE_HANDLE, nativeApi.receivedHandle)
     }
 
     @Test
@@ -52,7 +53,7 @@ class LlamaCppEngineTest {
     fun generate_wrapsNativeFailure() = runTest {
         val engine = LlamaCppEngine(
             modelProvider = LlamaModelProvider { File("model.gguf") },
-            nativeApi = LlamaNativeApi { _, _ -> error("native failed") },
+            nativeApi = FailingGenerateNativeApi(),
             dispatcher = UnconfinedTestDispatcher(testScheduler),
         )
 
@@ -60,19 +61,59 @@ class LlamaCppEngineTest {
 
         assertTrue(error is LlmException.NativeGeneration)
     }
+
+    @Test
+    fun generate_mapsContextOverflow() = runTest {
+        val engine = LlamaCppEngine(
+            modelProvider = LlamaModelProvider { File("model.gguf") },
+            nativeApi = ContextOverflowNativeApi(),
+            dispatcher = UnconfinedTestDispatcher(testScheduler),
+        )
+
+        val error = runCatching { engine.generate("prompt") }.exceptionOrNull()
+
+        assertTrue(error is LlmException.ContextOverflow)
+    }
 }
 
 private class RecordingLlamaNativeApi(
     private val response: String,
 ) : LlamaNativeApi {
     var receivedModelPath: String? = null
+    var receivedHandle: Long? = null
     var receivedPrompt: String? = null
     val wasCalled: Boolean
         get() = receivedPrompt != null
 
-    override fun generate(modelPath: String, prompt: String): String {
+    override fun load(modelPath: String): Long {
         receivedModelPath = modelPath
+        return TEST_NATIVE_HANDLE
+    }
+
+    override fun generate(handle: Long, prompt: String): String {
+        receivedHandle = handle
         receivedPrompt = prompt
         return response
     }
+
+    override fun close(handle: Long) = Unit
 }
+
+private class FailingGenerateNativeApi : LlamaNativeApi {
+    override fun load(modelPath: String): Long = TEST_NATIVE_HANDLE
+
+    override fun generate(handle: Long, prompt: String): String = error("native failed")
+
+    override fun close(handle: Long) = Unit
+}
+
+private class ContextOverflowNativeApi : LlamaNativeApi {
+    override fun load(modelPath: String): Long = TEST_NATIVE_HANDLE
+
+    override fun generate(handle: Long, prompt: String): String =
+        throw IllegalArgumentException("Prompt exceeds context")
+
+    override fun close(handle: Long) = Unit
+}
+
+private const val TEST_NATIVE_HANDLE = 7L

@@ -24,12 +24,14 @@ internal class BundledLlamaModelProvider(
         val temporaryFile = File(modelDirectory, "$MODEL_FILE_NAME.tmp")
         temporaryFile.delete()
         try {
-            context.assets.open(MODEL_ASSET_PATH).use { input ->
-                temporaryFile.outputStream().use(input::copyTo)
+            temporaryFile.outputStream().use { output ->
+                MODEL_ASSET_PATHS.forEach { assetPath ->
+                    context.assets.open(assetPath).use { input -> input.copyTo(output) }
+                }
             }
         } catch (error: Exception) {
             temporaryFile.delete()
-            throw LlmException.ModelMissing(MODEL_ASSET_PATH)
+            throw LlmException.ModelMissing(MODEL_ASSET_PATHS.joinToString())
         }
 
         if (temporaryFile.sha256() != MODEL_SHA256) {
@@ -59,10 +61,13 @@ internal class BundledLlamaModelProvider(
 
     private companion object {
         const val MODEL_DIRECTORY = "models"
-        const val MODEL_FILE_NAME = "stories15M-q4_0.gguf"
-        const val MODEL_ASSET_PATH = "$MODEL_DIRECTORY/$MODEL_FILE_NAME"
+        const val MODEL_FILE_NAME = "qwen3-4b-instruct-q4_k_m.gguf"
+        val MODEL_ASSET_PATHS = listOf(
+            "$MODEL_DIRECTORY/$MODEL_FILE_NAME.part0",
+            "$MODEL_DIRECTORY/$MODEL_FILE_NAME.part1",
+        )
         const val MODEL_SHA256 =
-            "6151b1929d7f5aa3385d9ddef3393e55587c0a55de661562322bc51dfda93a04"
+            "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5"
         const val SHA_256 = "SHA-256"
         const val HASH_BUFFER_SIZE = 8 * 1_024
     }

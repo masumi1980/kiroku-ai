@@ -1,16 +1,24 @@
 package jp.co.kirokuai.app.ai.llm
 
-internal fun interface LlamaNativeApi {
-    fun generate(modelPath: String, prompt: String): String
+internal interface LlamaNativeApi {
+    fun load(modelPath: String): Long
+    fun generate(handle: Long, prompt: String): String
+    fun close(handle: Long)
 }
 
 internal class LlamaNativeBridge : LlamaNativeApi {
-    override fun generate(modelPath: String, prompt: String): String {
+    override fun load(modelPath: String): Long {
         NativeLibrary.ensureLoaded()
-        return generateNative(modelPath, prompt)
+        return loadNative(modelPath)
     }
 
-    private external fun generateNative(modelPath: String, prompt: String): String
+    override fun generate(handle: Long, prompt: String): String = generateNative(handle, prompt)
+
+    override fun close(handle: Long) = closeNative(handle)
+
+    private external fun loadNative(modelPath: String): Long
+    private external fun generateNative(handle: Long, prompt: String): String
+    private external fun closeNative(handle: Long)
 
     private object NativeLibrary {
         @Volatile
