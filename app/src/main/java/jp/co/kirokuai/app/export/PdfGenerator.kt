@@ -8,10 +8,10 @@ import jp.co.kirokuai.app.model.MeetingSummary
 class PdfGenerator(
     private val zoneId: ZoneId = ZoneId.systemDefault(),
 ) {
-    fun generate(summary: MeetingSummary): PdfLayout {
+    fun generate(summary: MeetingSummary, meetingDateMillis: Long): PdfLayout {
         val blocks = buildList {
             add(PdfBlock("Meeting Summary", PdfTextStyle.TITLE))
-            add(PdfBlock("Meeting date: ${formatDate(summary.createdAt)}", PdfTextStyle.BODY))
+            add(PdfBlock("Meeting date: ${formatDate(meetingDateMillis)}", PdfTextStyle.BODY))
             addSection("Summary", listOf(summary.summary), isList = false)
             addSection("Decisions", summary.decisions)
             addSection("Discussion", summary.discussion)

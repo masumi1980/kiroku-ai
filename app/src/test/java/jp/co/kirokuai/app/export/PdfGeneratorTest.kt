@@ -9,7 +9,7 @@ import org.junit.Test
 class PdfGeneratorTest {
     @Test
     fun `generate includes title date and every summary section`() {
-        val layout = PdfGenerator(zoneId = ZoneOffset.UTC).generate(summary())
+        val layout = PdfGenerator(zoneId = ZoneOffset.UTC).generate(summary(), MEETING_DATE_MILLIS)
         val text = layout.pages.flatMap(PdfPage::lines).map(PdfLine::text)
 
         assertEquals("Meeting Summary", text.first())
@@ -39,7 +39,7 @@ class PdfGeneratorTest {
             risks = emptyList(),
         )
 
-        val text = PdfGenerator(ZoneOffset.UTC).generate(emptySummary)
+        val text = PdfGenerator(ZoneOffset.UTC).generate(emptySummary, MEETING_DATE_MILLIS)
             .pages.flatMap(PdfPage::lines).map(PdfLine::text)
 
         assertEquals(5, text.count { it == "None" })
@@ -49,7 +49,7 @@ class PdfGeneratorTest {
     fun `generate creates automatic page breaks for large summaries`() {
         val largeSummary = summary(summaryText = "日本語".repeat(20_000))
 
-        val layout = PdfGenerator(ZoneOffset.UTC).generate(largeSummary)
+        val layout = PdfGenerator(ZoneOffset.UTC).generate(largeSummary, MEETING_DATE_MILLIS)
 
         assertTrue(layout.pages.size > 1)
         assertTrue(layout.pages.all { page -> page.lines.isNotEmpty() })
@@ -86,4 +86,8 @@ class PdfGeneratorTest {
         risks = risks,
         createdAt = 1_785_699_000_000,
     )
+
+    private companion object {
+        const val MEETING_DATE_MILLIS = 1_785_699_000_000
+    }
 }

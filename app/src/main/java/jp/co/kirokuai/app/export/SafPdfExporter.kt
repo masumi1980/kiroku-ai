@@ -18,7 +18,7 @@ class SafPdfExporter(
     override fun defaultFileName(): String =
         FILE_NAME_FORMATTER.withZone(zoneId).format(currentInstant())
 
-    override fun export(summary: MeetingSummary, destination: String) {
+    override fun export(summary: MeetingSummary, meetingDateMillis: Long, destination: String) {
         try {
             val outputStream = requireNotNull(openOutputStream(destination)) {
                 "Storage Access Framework returned no output stream"
@@ -26,7 +26,7 @@ class SafPdfExporter(
             outputStream.use { output ->
                 val document = PdfDocument()
                 try {
-                    generator.generate(summary).pages.forEachIndexed { index, page ->
+                    generator.generate(summary, meetingDateMillis).pages.forEachIndexed { index, page ->
                         val pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, index + 1).create()
                         val pdfPage = document.startPage(pageInfo)
                         page.lines.forEach { line ->

@@ -45,6 +45,7 @@ class AppContainer(context: Context) {
     )
     val pdfExportUseCase = PdfExportUseCase(
         summaryRepository = meetingSummaryRepository,
+        meetingRepository = meetingRepository,
         exporter = SafPdfExporter(
             generator = PdfGenerator(),
             openOutputStream = { destination ->
