@@ -86,5 +86,7 @@ private class RecordingMeetingRepository : MeetingRepository {
 
     override suspend fun loadTranscript(meetingId: Long): String? = savedTranscript
 
+    override suspend fun search(keyword: String): List<Meeting> = emptyList()
+
     override fun getAll(): Flow<List<Meeting>> = emptyFlow()
 }

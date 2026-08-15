@@ -67,5 +67,6 @@ private class FakeMeetingRepository(private val transcript: String?) : MeetingRe
     override suspend fun save(meeting: Meeting): Long = meeting.id
     override suspend fun saveTranscript(meetingId: Long, transcript: String) = Unit
     override suspend fun loadTranscript(meetingId: Long): String? = transcript
+    override suspend fun search(keyword: String): List<Meeting> = emptyList()
     override fun getAll(): Flow<List<Meeting>> = MutableStateFlow(emptyList())
 }

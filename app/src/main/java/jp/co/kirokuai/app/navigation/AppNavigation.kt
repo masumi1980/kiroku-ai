@@ -19,6 +19,7 @@ import jp.co.kirokuai.app.viewmodel.MarkdownExportViewModel
 import jp.co.kirokuai.app.viewmodel.MeetingViewModel
 import jp.co.kirokuai.app.viewmodel.PdfExportViewModel
 import jp.co.kirokuai.app.viewmodel.RecordingViewModel
+import jp.co.kirokuai.app.viewmodel.SearchViewModel
 import java.io.File
 
 private const val HOME_ROUTE = "home"
@@ -50,8 +51,12 @@ fun AppNavigation() {
             val historyViewModel = viewModel {
                 HistoryViewModel(meetingRepository = meetingRepository)
             }
+            val searchViewModel = viewModel {
+                SearchViewModel(searchMeetings = application.appContainer.searchMeetingsUseCase)
+            }
             HistoryScreen(
                 viewModel = historyViewModel,
+                searchViewModel = searchViewModel,
                 onMeetingClick = { meetingId -> navController.navigate("$MEETING_ROUTE/$meetingId") },
             )
         }

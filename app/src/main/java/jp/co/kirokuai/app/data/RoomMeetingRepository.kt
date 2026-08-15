@@ -36,6 +36,9 @@ class RoomMeetingRepository(
     override suspend fun loadTranscript(meetingId: Long): String? =
         meetingDao.getTranscript(meetingId)
 
+    override suspend fun search(keyword: String): List<Meeting> =
+        meetingDao.search(keyword).map(MeetingEntity::toModel)
+
     override fun getAll(): Flow<List<Meeting>> =
         meetingDao.getAll().map { entities ->
             entities.map(MeetingEntity::toModel)

@@ -14,6 +14,7 @@ import jp.co.kirokuai.app.domain.MarkdownExportUseCase
 import jp.co.kirokuai.app.domain.MeetingSummarizer
 import jp.co.kirokuai.app.domain.MeetingSummaryRepository
 import jp.co.kirokuai.app.domain.PdfExportUseCase
+import jp.co.kirokuai.app.domain.SearchMeetingsUseCase
 import jp.co.kirokuai.app.export.PdfGenerator
 import jp.co.kirokuai.app.export.SafMarkdownExporter
 import jp.co.kirokuai.app.export.SafPdfExporter
@@ -24,6 +25,7 @@ class AppContainer(context: Context) {
     private val llmEngine = LlamaCppEngine(context)
 
     val meetingRepository: MeetingRepository = RoomMeetingRepository(database.meetingDao())
+    val searchMeetingsUseCase = SearchMeetingsUseCase(meetingRepository)
     val speechRepository = SpeechRepository(speechRecognizer, meetingRepository)
     val llmRepository = LlmRepository(llmEngine)
     val meetingSummaryRepository: MeetingSummaryRepository =

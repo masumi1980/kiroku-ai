@@ -98,6 +98,7 @@ private class FakePdfMeetingRepository(meeting: Meeting) : MeetingRepository {
     override suspend fun save(meeting: Meeting): Long = meeting.id
     override suspend fun saveTranscript(meetingId: Long, transcript: String) = Unit
     override suspend fun loadTranscript(meetingId: Long): String? = null
+    override suspend fun search(keyword: String): List<Meeting> = emptyList()
     override fun getAll(): Flow<List<Meeting>> = meetings
 }
 

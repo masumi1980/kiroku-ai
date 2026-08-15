@@ -10,5 +10,7 @@ interface MeetingRepository {
 
     suspend fun loadTranscript(meetingId: Long): String?
 
+    suspend fun search(keyword: String): List<Meeting>
+
     fun getAll(): Flow<List<Meeting>>
 }

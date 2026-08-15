@@ -25,6 +25,20 @@ interface MeetingDao {
     @Query("SELECT transcript FROM meetings WHERE id = :meetingId")
     suspend fun getTranscript(meetingId: Long): String?
 
+    @Query(
+        """
+        SELECT meetings.*
+        FROM meetings
+        LEFT JOIN meeting_summaries ON meeting_summaries.meetingId = meetings.id
+        WHERE meetings.title LIKE '%' || :keyword || '%' COLLATE NOCASE
+           OR meetings.transcript LIKE '%' || :keyword || '%' COLLATE NOCASE
+           OR meetings.summary LIKE '%' || :keyword || '%' COLLATE NOCASE
+           OR meeting_summaries.summary LIKE '%' || :keyword || '%' COLLATE NOCASE
+        ORDER BY meetings.createdAt DESC
+        """,
+    )
+    suspend fun search(keyword: String): List<MeetingEntity>
+
     @Transaction
     @Query(
         """

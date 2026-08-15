@@ -94,6 +94,13 @@ private class FakeMeetingDao : MeetingDao {
     override suspend fun getTranscript(meetingId: Long): String? =
         entities.value.firstOrNull { it.id == meetingId }?.transcript
 
+    override suspend fun search(keyword: String): List<MeetingEntity> =
+        entities.value.filter { entity ->
+            entity.title.contains(keyword, ignoreCase = true) ||
+                entity.transcript.contains(keyword, ignoreCase = true) ||
+                entity.summary?.contains(keyword, ignoreCase = true) == true
+        }
+
     override suspend fun saveTranscript(
         meetingId: Long,
         transcript: String,

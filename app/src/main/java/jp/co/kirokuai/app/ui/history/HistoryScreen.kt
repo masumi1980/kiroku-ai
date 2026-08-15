@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -22,6 +25,8 @@ import jp.co.kirokuai.app.model.Meeting
 import jp.co.kirokuai.app.model.MeetingStatus
 import jp.co.kirokuai.app.util.formatDuration
 import jp.co.kirokuai.app.viewmodel.HistoryViewModel
+import jp.co.kirokuai.app.viewmodel.SearchUiState
+import jp.co.kirokuai.app.viewmodel.SearchViewModel
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -30,29 +35,66 @@ import java.util.Locale
 @Composable
 fun HistoryScreen(
     viewModel: HistoryViewModel,
+    searchViewModel: SearchViewModel,
     onMeetingClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val meetings by viewModel.meetings.collectAsStateWithLifecycle()
+    val keyword by searchViewModel.keyword.collectAsStateWithLifecycle()
+    val searchState by searchViewModel.uiState.collectAsStateWithLifecycle()
 
-    if (meetings.isEmpty()) {
-        EmptyHistory(modifier = modifier)
-    } else {
-        MeetingList(
-            meetings = meetings,
-            onMeetingClick = onMeetingClick,
-            modifier = modifier,
+    Column(modifier = modifier.fillMaxSize()) {
+        Text(
+            text = "会議履歴",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
         )
+        OutlinedTextField(
+            value = keyword,
+            onValueChange = searchViewModel::onKeywordChanged,
+            label = { Text("会議を検索") },
+            singleLine = true,
+            trailingIcon = {
+                if (keyword.isNotEmpty()) {
+                    TextButton(onClick = searchViewModel::clearKeyword) { Text("クリア") }
+                }
+            },
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+        )
+        when (val state = searchState) {
+            SearchUiState.Empty -> if (meetings.isEmpty()) {
+                EmptyMessage("会議はありません", Modifier.weight(1f))
+            } else {
+                MeetingList(meetings, onMeetingClick, Modifier.weight(1f))
+            }
+            SearchUiState.Loading -> LoadingSearch(Modifier.weight(1f))
+            is SearchUiState.Results -> if (state.meetings.isEmpty()) {
+                EmptyMessage("検索結果がありません", Modifier.weight(1f))
+            } else {
+                MeetingList(state.meetings, onMeetingClick, Modifier.weight(1f))
+            }
+            is SearchUiState.Error -> EmptyMessage(state.message, Modifier.weight(1f))
+        }
     }
 }
 
 @Composable
-private fun EmptyHistory(modifier: Modifier = Modifier) {
+private fun EmptyMessage(message: String, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        Text("No meetings yet")
+        Text(message)
+    }
+}
+
+@Composable
+private fun LoadingSearch(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator()
     }
 }
 
@@ -64,15 +106,9 @@ private fun MeetingList(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
-            Text(
-                text = "会議履歴",
-                style = MaterialTheme.typography.headlineMedium,
-            )
-        }
         items(
             items = meetings,
             key = Meeting::id,
